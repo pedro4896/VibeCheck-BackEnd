@@ -13,9 +13,39 @@ public class AuthController : ControllerBase
     [HttpGet("login")]
     public IActionResult TriggerGoogleLogin()
     {
-        var redirectUrl = Url.Action("GoogleResponse", "Auth");
-        var properties = new AuthenticationProperties { RedirectUri = redirectUrl };
-        return Challenge(properties, "Google");
+        // Redirecionar baseado no role após login
+        return Challenge(new AuthenticationProperties
+        {
+            RedirectUri = "/auth/success"
+        }, "Google");
+    }
+
+    [HttpGet("auth/success")]
+    [Authorize]
+    public IActionResult LoginSuccess()
+    {
+        var user = HttpContext.User;
+
+        // Verificar roles e redirecionar apropriadamente
+        if (user.IsInRole("ROLE_PROFESSOR"))
+        {
+            return Redirect("http://localhost:3000/dashboard");
+        }
+        else if (user.IsInRole("ROLE_ALUNO"))
+        {
+            return Redirect("http://localhost:3000/check");
+        }
+
+        // Fallback para usuários sem role específico
+        return Redirect("http://localhost:3000/");
+    }
+
+    [HttpPost("logout")]
+    [Authorize]
+    public async Task<IActionResult> Logout()
+    {
+        await HttpContext.SignOutAsync();
+        return Ok(new { message = "✅ Usuário fez logout." });
     }
 
     [HttpGet("")]
@@ -23,21 +53,6 @@ public class AuthController : ControllerBase
     public IActionResult PublicPage()
     {
         return Ok("Bem-vindo ao Vibe Check! Faça login para continuar via /login.");
-    }
-
-    [HttpGet("google-response")]
-    public async Task<IActionResult> GoogleResponse()
-    {
-        var result = await HttpContext.AuthenticateAsync("Google");
-
-        if (result?.Succeeded == true)
-        {
-            // Usuário autenticado com sucesso
-            // Aqui você pode redirecionar para uma página de sucesso ou retornar dados
-            return Ok(new { message = "Login realizado com sucesso!", user = result.Principal?.Identity?.Name });
-        }
-
-        return BadRequest(new { error = "Falha na autenticação" });
     }
 
     [HttpGet("user/details")]

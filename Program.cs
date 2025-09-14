@@ -1,10 +1,23 @@
 using Microsoft.EntityFrameworkCore;
 using VibeCheckAPI_Dotnet8.Data.Context;
+using System.Security.Claims;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllers();
+
+// Configuração de CORS
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(policy =>
+    {
+        policy.WithOrigins("http://localhost:3000", "http://localhost:8080")
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials();
+    });
+});
 
 // Configuração do Entity Framework com PostgreSQL
 builder.Services.AddDbContext<AppDbContext>(options =>
@@ -22,30 +35,65 @@ builder.Services.AddAuthentication(options =>
     options.ClientId = builder.Configuration["Authentication:Google:ClientId"] ?? "";
     options.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"] ?? "";
     options.CallbackPath = "/signin-google";
+
+    // Solicitar scopes necessários
+    options.Scope.Add("profile");
+    options.Scope.Add("email");
+
+    // Configurar eventos de autenticação
+    options.Events.OnCreatingTicket = context =>
+    {
+        var email = context.Principal?.FindFirst(ClaimTypes.Email)?.Value;
+
+        if (!string.IsNullOrEmpty(email) && context.Principal?.Identity is ClaimsIdentity identity)
+        {
+            if (email.EndsWith("@belojardim.ifpe.edu.br") || email.Contains("professor"))
+            {
+                identity.AddClaim(new Claim(ClaimTypes.Role, "ROLE_PROFESSOR"));
+            }
+            else
+            {
+                identity.AddClaim(new Claim(ClaimTypes.Role, "ROLE_ALUNO"));
+            }
+        }
+
+        return Task.CompletedTask;
+    };
 });
 
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorization(options =>
+{
+    // Política para professores
+    options.AddPolicy("ApenasProfessor", policy =>
+        policy.RequireRole("ROLE_PROFESSOR"));
 
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+    // Política para alunos
+    options.AddPolicy("ApenasAluno", policy =>
+        policy.RequireRole("ROLE_ALUNO"));
+
+    // Política para usuários autenticados
+    options.AddPolicy("ApenasAutenticado", policy =>
+        policy.RequireAuthenticatedUser());
+});
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
+// app.UseHttpsRedirection();
 
-// Configuração do pipeline de autenticação
+app.UseCors();
+
 app.UseAuthentication();
 app.UseAuthorization();
 
-// Mapear os controllers
 app.MapControllers();
 
 app.Run();
