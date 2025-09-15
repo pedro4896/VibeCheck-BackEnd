@@ -24,7 +24,7 @@ namespace VibeCheckAPI_Dotnet8.Data.Context
                 .HasIndex(u => u.GoogleId).IsUnique();
 
             modelBuilder.Entity<Usuario>()
-                .HasDiscriminator<string>("Discriminator")
+                .HasDiscriminator<string>("TipoUsuario")
                 .HasValue<Aluno>("Aluno")
                 .HasValue<Professor>("Professor");
 

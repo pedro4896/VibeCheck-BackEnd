@@ -1,6 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using VibeCheckAPI_Dotnet8.Data.Context;
 using System.Security.Claims;
+using VibeCheckAPI_Dotnet8.Services;
+using VibeCheckAPI_Dotnet8.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -22,6 +24,12 @@ builder.Services.AddCors(options =>
 // Configuração do Entity Framework com PostgreSQL
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+// Serviços de domínio
+builder.Services.AddScoped<IAvaliacaoService, AvaliacaoService>();
+builder.Services.AddScoped<ITurmaService, TurmaService>();
+builder.Services.AddScoped<IRegistroEmocionalService, RegistroEmocionalService>();
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
 // Configuração de autenticação OAuth2 com Google
 builder.Services.AddAuthentication(options =>
