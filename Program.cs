@@ -3,8 +3,6 @@ using VibeCheckAPI_Dotnet8.Data.Context;
 using System.Security.Claims;
 using VibeCheckAPI_Dotnet8.Services;
 using VibeCheckAPI_Dotnet8.Repositories;
-using Microsoft.Extensions.Options;
-using Microsoft.Extensions.DependencyInjection;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -28,7 +26,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // Serviços de domínio
-builder.Services.AddScoped<IAvaliacaoService, AvaliacaoService>(); 
+builder.Services.AddScoped<IAvaliacaoService, AvaliacaoService>();
 builder.Services.AddScoped<ITurmaService, TurmaService>();
 builder.Services.AddScoped<IUsuarioService, UsuarioService>();
 builder.Services.AddScoped<IRegistroEmocionalService, RegistroEmocionalService>();
@@ -55,28 +53,29 @@ builder.Services.AddAuthentication(options =>
     options.Events.OnCreatingTicket = async context =>
     {
         var email = context.Principal?.FindFirst(ClaimTypes.Email)?.Value;
-        if (string.IsNullOrEmpty(email) || context.Principal?.Identity is not ClaimsIdentity identity)
+        var nome = context.Principal?.FindFirst(ClaimTypes.Name)?.Value ?? email ?? "Usuário";
+        var googleId = context.Principal?.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? context.Principal?.FindFirst("sub")?.Value;
+
+        if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(googleId) || context.Principal?.Identity is not ClaimsIdentity identity)
             return;
 
-        var elegibilidadeService = context.HttpContext.RequestServices.GetRequiredService<ElegibilidadeService>();
+        // Role
+        var elegibilidadeService = context.HttpContext.RequestServices.GetRequiredService<IElegibilidadeService>();
         var elegivelParaProfessor = await elegibilidadeService.verificarElegibilidadeProfessor(email);
         identity.AddClaim(new Claim(ClaimTypes.Role, elegivelParaProfessor ? "ROLE_PROFESSOR" : "ROLE_ALUNO"));
+
+        // Registro automático no banco
+        using var scope = context.HttpContext.RequestServices.CreateScope();
+        var usuarioService = scope.ServiceProvider.GetRequiredService<IUsuarioService>();
+        await usuarioService.RegistrarUsuarioAsync(googleId, email, nome);
     };
 });
 
 builder.Services.AddAuthorization(options =>
 {
-    // Política para professores
-    options.AddPolicy("ApenasProfessor", policy =>
-        policy.RequireRole("ROLE_PROFESSOR"));
-
-    // Política para alunos
-    options.AddPolicy("ApenasAluno", policy =>
-        policy.RequireRole("ROLE_ALUNO"));
-
-    // Política para usuários autenticados
-    options.AddPolicy("ApenasAutenticado", policy =>
-        policy.RequireAuthenticatedUser());
+    options.AddPolicy("ApenasProfessor", policy => policy.RequireRole("ROLE_PROFESSOR"));
+    options.AddPolicy("ApenasAluno", policy => policy.RequireRole("ROLE_ALUNO"));
+    options.AddPolicy("ApenasAutenticado", policy => policy.RequireAuthenticatedUser());
 });
 
 builder.Services.AddEndpointsApiExplorer();
@@ -90,13 +89,9 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-// app.UseHttpsRedirection();
-
+app.UseHttpsRedirection();
 app.UseCors();
-
 app.UseAuthentication();
 app.UseAuthorization();
-
 app.MapControllers();
-
 app.Run();

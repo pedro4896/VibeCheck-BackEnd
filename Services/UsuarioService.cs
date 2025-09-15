@@ -14,9 +14,9 @@ public interface IUsuarioService
 public class UsuarioService : IUsuarioService
 {
     private readonly IUnitOfWork _uow;
-    private readonly ElegibilidadeService _elegibilidadeService;
+    private readonly IElegibilidadeService _elegibilidadeService;
 
-    public UsuarioService(IUnitOfWork uow, ElegibilidadeService elegibilidadeService)
+    public UsuarioService(IUnitOfWork uow, IElegibilidadeService elegibilidadeService)
     {
         _uow = uow;
         _elegibilidadeService = elegibilidadeService;
@@ -37,7 +37,7 @@ public class UsuarioService : IUsuarioService
         }
 
         var elegivelParaProfessor = await _elegibilidadeService.verificarElegibilidadeProfessor(email);
-        
+
         if (elegivelParaProfessor)
         {
             var novoUsuario = new Professor
@@ -58,7 +58,8 @@ public class UsuarioService : IUsuarioService
                 Nome = novoUsuario.Nome,
             };
 
-        } else
+        }
+        else
         {
             var novoUsuario = new Aluno
             {
@@ -80,5 +81,5 @@ public class UsuarioService : IUsuarioService
         }
     }
 
-    
+
 }

@@ -14,17 +14,9 @@ namespace VibeCheckAPI_Dotnet8.Controllers
     [Route("")]
     public class AuthController : ControllerBase
     {
-        private readonly IUsuarioService _usuarioService;
-
-        public AuthController(IUsuarioService usuarioService)
-        {
-            _usuarioService = usuarioService;
-        }
-
         [HttpGet("login")]
         public IActionResult TriggerGoogleLogin()
         {
-            // Redirecionar baseado no role após login
             return Challenge(new AuthenticationProperties
             {
                 RedirectUri = "/auth/success"
@@ -82,31 +74,14 @@ namespace VibeCheckAPI_Dotnet8.Controllers
             var roles = user.Claims.Where(c => c.Type == ClaimTypes.Role).Select(c => c.Value).ToList();
 
             var userDetails = new Dictionary<string, object>
-        {
-            { "name", name ?? string.Empty },
-            { "email", email ?? string.Empty },
-            { "googleId", googleId ?? string.Empty },
-            { "roles", roles }
-        };
+            {
+                { "name", name ?? string.Empty },
+                { "email", email ?? string.Empty },
+                { "googleId", googleId ?? string.Empty },
+                { "roles", roles }
+            };
 
             return Ok(userDetails);
-        }
-
-        [HttpPost("auth/registrar")] 
-        [Authorize]
-        public async Task<ActionResult<UsuarioResponseDTO>> Registrar()
-        {
-            var principal = HttpContext.User;
-            var googleId = principal.FindFirstValue(ClaimTypes.NameIdentifier) ?? principal.FindFirstValue("sub");
-            var email = principal.FindFirstValue(ClaimTypes.Email);
-            var nomeGoogle = principal.FindFirstValue(ClaimTypes.Name) ?? email ?? "Usuário";
-
-            if (string.IsNullOrEmpty(googleId) || string.IsNullOrEmpty(email))
-                return Unauthorized("Credenciais Google ausentes.");
-
-            var novoUsuario = await _usuarioService.RegistrarUsuarioAsync(googleId, email, nomeGoogle);
-
-            return Created($"/usuarios/{novoUsuario.Id}", novoUsuario);
         }
     }
 }
