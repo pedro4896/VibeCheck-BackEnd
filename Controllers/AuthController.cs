@@ -5,6 +5,8 @@ using System.Security.Claims;
 using System.Linq;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using VibeCheckAPI_Dotnet8.DTOs;
+using VibeCheckAPI_Dotnet8.Services;
 
 namespace VibeCheckAPI_Dotnet8.Controllers
 {
@@ -12,6 +14,13 @@ namespace VibeCheckAPI_Dotnet8.Controllers
     [Route("")]
     public class AuthController : ControllerBase
     {
+        private readonly IUsuarioService _usuarioService;
+
+        public AuthController(IUsuarioService usuarioService)
+        {
+            _usuarioService = usuarioService;
+        }
+
         [HttpGet("login")]
         public IActionResult TriggerGoogleLogin()
         {
@@ -81,6 +90,23 @@ namespace VibeCheckAPI_Dotnet8.Controllers
         };
 
             return Ok(userDetails);
+        }
+
+        [HttpPost("auth/registrar")] 
+        [Authorize]
+        public async Task<ActionResult<UsuarioResponseDTO>> Registrar()
+        {
+            var principal = HttpContext.User;
+            var googleId = principal.FindFirstValue(ClaimTypes.NameIdentifier) ?? principal.FindFirstValue("sub");
+            var email = principal.FindFirstValue(ClaimTypes.Email);
+            var nomeGoogle = principal.FindFirstValue(ClaimTypes.Name) ?? email ?? "Usuário";
+
+            if (string.IsNullOrEmpty(googleId) || string.IsNullOrEmpty(email))
+                return Unauthorized("Credenciais Google ausentes.");
+
+            var novoUsuario = await _usuarioService.RegistrarUsuarioAsync(googleId, email, nomeGoogle);
+
+            return Created($"/usuarios/{novoUsuario.Id}", novoUsuario);
         }
     }
 }

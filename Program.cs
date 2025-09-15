@@ -3,6 +3,8 @@ using VibeCheckAPI_Dotnet8.Data.Context;
 using System.Security.Claims;
 using VibeCheckAPI_Dotnet8.Services;
 using VibeCheckAPI_Dotnet8.Repositories;
+using Microsoft.Extensions.Options;
+using Microsoft.Extensions.DependencyInjection;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -26,10 +28,13 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // Serviços de domínio
-builder.Services.AddScoped<IAvaliacaoService, AvaliacaoService>();
+builder.Services.AddScoped<IAvaliacaoService, AvaliacaoService>(); 
 builder.Services.AddScoped<ITurmaService, TurmaService>();
+builder.Services.AddScoped<IUsuarioService, UsuarioService>();
 builder.Services.AddScoped<IRegistroEmocionalService, RegistroEmocionalService>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+builder.Services.Configure<ElegibilidadeProfessorOptions>(builder.Configuration.GetSection("Authorization:Professores"));
+builder.Services.AddSingleton<IElegibilidadeService, ElegibilidadeService>();
 
 // Configuração de autenticação OAuth2 com Google
 builder.Services.AddAuthentication(options =>
@@ -44,28 +49,18 @@ builder.Services.AddAuthentication(options =>
     options.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"] ?? "";
     options.CallbackPath = "/signin-google";
 
-    // Solicitar scopes necessários
     options.Scope.Add("profile");
     options.Scope.Add("email");
 
-    // Configurar eventos de autenticação
-    options.Events.OnCreatingTicket = context =>
+    options.Events.OnCreatingTicket = async context =>
     {
         var email = context.Principal?.FindFirst(ClaimTypes.Email)?.Value;
+        if (string.IsNullOrEmpty(email) || context.Principal?.Identity is not ClaimsIdentity identity)
+            return;
 
-        if (!string.IsNullOrEmpty(email) && context.Principal?.Identity is ClaimsIdentity identity)
-        {
-            if (email.EndsWith("@belojardim.ifpe.edu.br") || email.Contains("professor"))
-            {
-                identity.AddClaim(new Claim(ClaimTypes.Role, "ROLE_PROFESSOR"));
-            }
-            else
-            {
-                identity.AddClaim(new Claim(ClaimTypes.Role, "ROLE_ALUNO"));
-            }
-        }
-
-        return Task.CompletedTask;
+        var elegibilidadeService = context.HttpContext.RequestServices.GetRequiredService<ElegibilidadeService>();
+        var elegivelParaProfessor = await elegibilidadeService.verificarElegibilidadeProfessor(email);
+        identity.AddClaim(new Claim(ClaimTypes.Role, elegivelParaProfessor ? "ROLE_PROFESSOR" : "ROLE_ALUNO"));
     };
 });
 

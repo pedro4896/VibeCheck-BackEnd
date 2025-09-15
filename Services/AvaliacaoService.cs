@@ -12,9 +12,14 @@ public interface IAvaliacaoService
     Task<CodigoAvaliacaoResponseDTO> GerarCodigoCheckoutAsync(string googleId, string nomeTurma, int validadeSegundos);
 }
 
-public class AvaliacaoService(IUnitOfWork uow) : IAvaliacaoService
+public class AvaliacaoService : IAvaliacaoService
 {
-    private readonly IUnitOfWork _uow = uow;
+    private readonly IUnitOfWork _uow;
+
+    public AvaliacaoService(IUnitOfWork uow)
+    {
+        _uow = uow;
+    }
 
     private static string GerarCodigo(int length = 6)
     {
