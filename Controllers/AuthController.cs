@@ -23,7 +23,7 @@ namespace VibeCheckAPI_Dotnet8.Controllers
             }, "Google");
         }
 
-        [HttpGet("auth/success")]
+        [HttpGet("success")]
         [Authorize]
         public IActionResult LoginSuccess()
         {
