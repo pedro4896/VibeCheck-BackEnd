@@ -11,7 +11,7 @@ using VibeCheckAPI_Dotnet8.Services;
 namespace VibeCheckAPI_Dotnet8.Controllers
 {
     [ApiController]
-    [Route("")]
+    [Route("api/[controller]")]
     public class AuthController : ControllerBase
     {
         [HttpGet("login")]

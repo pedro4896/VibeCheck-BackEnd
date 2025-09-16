@@ -1,5 +1,3 @@
-
-
 using VibeCheckAPI_Dotnet8.Data.Context;
 using VibeCheckAPI_Dotnet8.Models;
 
@@ -14,6 +12,7 @@ namespace VibeCheckAPI_Dotnet8.Repositories
         IRepository<Turma> TurmaRepository { get; }
         IRepository<Avaliacao> AvaliacaoRepository { get; }
         IRepository<RegistroEmocional> RegistroEmocionalRepository { get; }
+        IRepository<Emocao> EmocaoRepository { get; }
 
         Task CommitAsync();
     }
@@ -28,6 +27,7 @@ namespace VibeCheckAPI_Dotnet8.Repositories
         private IRepository<Turma>? _turmaRepository;
         private IRepository<Avaliacao>? _avaliacaoRepository;
         private IRepository<RegistroEmocional>? _registroEmocionalRepository;
+        private IRepository<Emocao>? _emocaoRepository;
 
         public UnitOfWork(AppDbContext context)
         {
@@ -40,6 +40,7 @@ namespace VibeCheckAPI_Dotnet8.Repositories
         public IRepository<Turma> TurmaRepository => _turmaRepository ??= new Repository<Turma>(_context);
         public IRepository<Avaliacao> AvaliacaoRepository => _avaliacaoRepository ??= new Repository<Avaliacao>(_context);
         public IRepository<RegistroEmocional> RegistroEmocionalRepository => _registroEmocionalRepository ??= new Repository<RegistroEmocional>(_context);
+        public IRepository<Emocao> EmocaoRepository => _emocaoRepository ??= new Repository<Emocao>(_context);
 
         public async Task CommitAsync()
         {

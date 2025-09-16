@@ -2,12 +2,14 @@ using Microsoft.EntityFrameworkCore;
 using VibeCheckAPI_Dotnet8.Data.Context;
 using VibeCheckAPI_Dotnet8.DTOs;
 using VibeCheckAPI_Dotnet8.Repositories;
+using VibeCheckAPI_Dotnet8.Models;
 
 namespace VibeCheckAPI_Dotnet8.Services;
 
 public interface IRegistroEmocionalService
 {
     Task<IEnumerable<RegistroEmocionalDTO>> GetDashboardAsync();
+    Task<RegistroEmocional> RegistrarEmocaoAsync(string alunoGoogleId, string codigoAvaliacao, int emocaoId);
 }
 
 public class RegistroEmocionalService : IRegistroEmocionalService
@@ -17,7 +19,7 @@ public class RegistroEmocionalService : IRegistroEmocionalService
     {
         _uow = uow;
     }
-    
+
     public async Task<IEnumerable<RegistroEmocionalDTO>> GetDashboardAsync()
     {
         // Exemplo simples: agrupar avaliações ativas por turma e tipo
@@ -39,5 +41,42 @@ public class RegistroEmocionalService : IRegistroEmocionalService
             }).ToList();
 
         return registrosEmocionaisFormatados;
+    }
+
+    public async Task<RegistroEmocional> RegistrarEmocaoAsync(string alunoGoogleId, string codigoAvaliacao, int emocaoId)
+    {
+        var agora = DateTime.UtcNow;
+        var avaliacao = await _uow.AvaliacaoRepository
+            .ObterAsync(a => a.Codigo == codigoAvaliacao && a.Ativa && a.DataExpiracao > agora,
+            include: q => q
+                .Include(a => a.Turma)!
+                    .ThenInclude(t => t!.Professor)
+        ) ?? throw new InvalidOperationException("Código de avaliação inválido ou expirado.");
+
+        var aluno = await _uow.UsuarioRepository.
+            ObterAsync(u => u is Aluno && u.GoogleId == alunoGoogleId) as Aluno ?? throw new InvalidOperationException("Aluno não encontrado.");
+            
+        var emocao = await _uow.EmocaoRepository
+            .ObterAsync(e => e.Id == emocaoId) ?? throw new InvalidOperationException("Emoção inválida.");
+
+        if (aluno.TurmaId == null)
+        {
+            aluno.TurmaId = avaliacao.TurmaId;
+            _uow.UsuarioRepository.Atualizar(aluno);
+        }
+
+        var registro = new RegistroEmocional
+        {
+            AlunoId = aluno.Id,
+            AvaliacaoId = avaliacao.Id,
+            Emocao = emocao,
+            DataRegistro = DateTime.UtcNow,
+            Avaliacao = avaliacao
+        };
+
+        _uow.RegistroEmocionalRepository.Criar(registro);
+        await _uow.CommitAsync();
+
+        return registro;
     }
 }

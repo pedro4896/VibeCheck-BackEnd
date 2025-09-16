@@ -12,7 +12,7 @@ using VibeCheckAPI_Dotnet8.DTOs;
 namespace VibeCheckAPI_Dotnet8.Controllers
 {
     [ApiController]
-    [Route("")]
+    [Route("api/[controller]")]
     public class AvaliacaoController : ControllerBase
     {
         private readonly IAvaliacaoService _avaliacaoService;
@@ -56,6 +56,15 @@ namespace VibeCheckAPI_Dotnet8.Controllers
             if (googleId is null) return Unauthorized();
             var turmas = await _turmaService.ListarTurmasProfessorAsync(googleId);
             return Ok(turmas);
+        }
+
+        [HttpGet("/verificar-codigo")]
+        [Authorize(Policy = "ApenasAluno")]
+        public async Task<ActionResult<IEnumerable<TurmaDTO>>> VerificarCodigo(string codigo)
+        {
+            var codigoValido = await _avaliacaoService.VerificarCodigo(codigo);
+
+            return Ok(codigoValido);
         }
 
         [HttpGet("dashboard")]

@@ -10,6 +10,7 @@ public interface IAvaliacaoService
 {
     Task<CodigoAvaliacaoResponseDTO> GerarCodigoCheckinAsync(string googleId, string nomeTurma, int validadeSegundos);
     Task<CodigoAvaliacaoResponseDTO> GerarCodigoCheckoutAsync(string googleId, string nomeTurma, int validadeSegundos);
+    Task<bool> VerificarCodigo(string codigo);
 }
 
 public class AvaliacaoService : IAvaliacaoService
@@ -61,5 +62,11 @@ public class AvaliacaoService : IAvaliacaoService
     {
         var turma = await _uow.TurmaRepository.ObterAsync(t => t.Nome == nomeTurma && t.Professor!.GoogleId == googleId);
         return await CriarAvaliacaoAsync(TipoAvaliacao.Checkout, turma!, validadeSegundos);
+    }
+
+    public async Task<bool> VerificarCodigo(string codigo)
+    {
+        var avaliacao = await _uow.AvaliacaoRepository.ObterAsync(a => a.Codigo == codigo);
+        return avaliacao != null && avaliacao.Ativa;
     }
 }
