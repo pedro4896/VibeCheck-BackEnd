@@ -19,7 +19,7 @@ namespace VibeCheckAPI_Dotnet8.Controllers
         {
             return Challenge(new AuthenticationProperties
             {
-                RedirectUri = "/auth/success"
+                RedirectUri = "/api/auth/success"
             }, "Google");
         }
 
