@@ -4,6 +4,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
+#pragma warning disable CA1814 // Prefer jagged arrays over multidimensional
+
 namespace VibeCheckAPI_Dotnet8.Migrations
 {
     /// <inheritdoc />
@@ -54,8 +56,7 @@ namespace VibeCheckAPI_Dotnet8.Migrations
                     EmocaoId = table.Column<int>(type: "integer", nullable: true),
                     DataRegistro = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     AvaliacaoId = table.Column<int>(type: "integer", nullable: false),
-                    AlunoId = table.Column<int>(type: "integer", nullable: true),
-                    AvaliacaoId1 = table.Column<int>(type: "integer", nullable: true)
+                    AlunoId = table.Column<int>(type: "integer", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -66,11 +67,6 @@ namespace VibeCheckAPI_Dotnet8.Migrations
                         principalTable: "Avaliacoes",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_RegistrosEmocionais_Avaliacoes_AvaliacaoId1",
-                        column: x => x.AvaliacaoId1,
-                        principalTable: "Avaliacoes",
-                        principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_RegistrosEmocionais_Emocoes_EmocaoId",
                         column: x => x.EmocaoId,
@@ -85,6 +81,7 @@ namespace VibeCheckAPI_Dotnet8.Migrations
                     Id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     Nome = table.Column<string>(type: "text", nullable: false),
+                    LimiteAlunos = table.Column<int>(type: "integer", nullable: false),
                     ProfessorId = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
@@ -115,6 +112,22 @@ namespace VibeCheckAPI_Dotnet8.Migrations
                         onDelete: ReferentialAction.Restrict);
                 });
 
+            migrationBuilder.InsertData(
+                table: "Emocoes",
+                columns: new[] { "Id", "Emoji", "Titulo", "ValorNumerico" },
+                values: new object[,]
+                {
+                    { 1, "😠", "Irritado", 1 },
+                    { 2, "😢", "Triste", 2 },
+                    { 3, "😰", "Ansioso", 3 },
+                    { 4, "😞", "Desmotivado", 4 },
+                    { 5, "😐", "Indiferente", 5 },
+                    { 6, "😮", "Surpreso", 6 },
+                    { 7, "😊", "Feliz", 7 },
+                    { 8, "😄", "Muito Feliz", 8 },
+                    { 9, "😍", "Apaixonado", 9 }
+                });
+
             migrationBuilder.CreateIndex(
                 name: "IX_Avaliacoes_TurmaId",
                 table: "Avaliacoes",
@@ -129,11 +142,6 @@ namespace VibeCheckAPI_Dotnet8.Migrations
                 name: "IX_RegistrosEmocionais_AvaliacaoId",
                 table: "RegistrosEmocionais",
                 column: "AvaliacaoId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_RegistrosEmocionais_AvaliacaoId1",
-                table: "RegistrosEmocionais",
-                column: "AvaliacaoId1");
 
             migrationBuilder.CreateIndex(
                 name: "IX_RegistrosEmocionais_EmocaoId",

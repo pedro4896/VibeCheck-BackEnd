@@ -43,21 +43,20 @@ public class RegistroEmocionalService : IRegistroEmocionalService
         return registrosEmocionaisFormatados;
     }
 
-    public async Task<RegistroEmocional> RegistrarEmocaoAsync(string alunoGoogleId, string codigoAvaliacao, int emocaoId)
+    public async Task<RegistroEmocional> RegistrarEmocaoAsync(string alunoGoogleId, string codigoAvaliacao, int valorEmocao)
     {
         var agora = DateTime.UtcNow;
         var avaliacao = await _uow.AvaliacaoRepository
             .ObterAsync(a => a.Codigo == codigoAvaliacao && a.Ativa && a.DataExpiracao > agora,
             include: q => q
-                .Include(a => a.Turma)!
-                    .ThenInclude(t => t!.Professor)
+                .Include(a => a.Turma)
         ) ?? throw new InvalidOperationException("Código de avaliação inválido ou expirado.");
 
-        var aluno = await _uow.UsuarioRepository.
-            ObterAsync(u => u is Aluno && u.GoogleId == alunoGoogleId) as Aluno ?? throw new InvalidOperationException("Aluno não encontrado.");
-            
+        var aluno = await _uow.AlunoRepository
+            .ObterAsync(a => a.GoogleId == alunoGoogleId) ?? throw new InvalidOperationException("Aluno não encontrado.");
+
         var emocao = await _uow.EmocaoRepository
-            .ObterAsync(e => e.Id == emocaoId) ?? throw new InvalidOperationException("Emoção inválida.");
+            .ObterAsync(e => e.ValorNumerico == valorEmocao) ?? throw new InvalidOperationException("Emoção inválida.");
 
         if (aluno.TurmaId == null)
         {
@@ -69,13 +68,16 @@ public class RegistroEmocionalService : IRegistroEmocionalService
         {
             AlunoId = aluno.Id,
             AvaliacaoId = avaliacao.Id,
-            Emocao = emocao,
+            EmocaoId = emocao.Id,
             DataRegistro = DateTime.UtcNow,
-            Avaliacao = avaliacao
         };
 
         _uow.RegistroEmocionalRepository.Criar(registro);
         await _uow.CommitAsync();
+
+        registro.Avaliacao = avaliacao;
+        registro.Emocao = emocao;
+        registro.Aluno = aluno;
 
         return registro;
     }

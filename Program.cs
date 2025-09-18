@@ -26,13 +26,16 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // Serviços de domínio
-builder.Services.AddScoped<IAvaliacaoService, AvaliacaoService>();
-builder.Services.AddScoped<ITurmaService, TurmaService>();
-builder.Services.AddScoped<IUsuarioService, UsuarioService>();
 builder.Services.AddScoped<IRegistroEmocionalService, RegistroEmocionalService>();
-builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
-builder.Services.Configure<ElegibilidadeProfessorOptions>(builder.Configuration.GetSection("Authorization:Professores"));
 builder.Services.AddSingleton<IElegibilidadeService, ElegibilidadeService>();
+builder.Services.AddScoped<IAvaliacaoService, AvaliacaoService>();
+builder.Services.AddScoped<IUsuarioService, UsuarioService>();
+builder.Services.AddScoped<ITurmaService, TurmaService>();
+
+builder.Services.Configure<ElegibilidadeProfessorOptions>(builder.Configuration.GetSection("Authorization:Professores"));
+
+builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
 // Configuração de autenticação OAuth2 com Google
 builder.Services.AddAuthentication(options =>

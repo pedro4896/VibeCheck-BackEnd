@@ -25,7 +25,7 @@ cd VibeCheckAPI-Dotnet8
 
 - Ou suba uma imagem via docker [Recomendado]
   
-docker run --name vibecheck-db \ -e POSTGRES_USER=postgres \ -e POSTGRES_PASSWORD=root \ -e POSTGRES_DB=vibecheck \ -p 5432:5432 \ -d postgres:17
+docker run --name vibecheck-db -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=root -e POSTGRES_DB=vibecheck -p 5432:5432 -d postgres:17
 
 ### 3. Configure Google OAuth
 

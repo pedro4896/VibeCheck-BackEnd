@@ -34,6 +34,7 @@ namespace VibeCheckAPI_Dotnet8.Controllers
         {
             var googleId = GetGoogleSub();
             if (googleId is null) return Unauthorized();
+            
             var dto = await _avaliacaoService.GerarCodigoCheckinAsync(googleId, request.NomeTurma, request.ValidadeSegundos);
             return Ok(dto);
         }
@@ -58,7 +59,7 @@ namespace VibeCheckAPI_Dotnet8.Controllers
             return Ok(turmas);
         }
 
-        [HttpGet("/verificar-codigo")]
+        [HttpGet("verificar-codigo")]
         [Authorize(Policy = "ApenasAluno")]
         public async Task<ActionResult<IEnumerable<TurmaDTO>>> VerificarCodigo(string codigo)
         {

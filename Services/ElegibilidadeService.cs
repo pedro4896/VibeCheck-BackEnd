@@ -32,7 +32,7 @@ public class ElegibilidadeService : IElegibilidadeService
         if (_options.Domains?.Any(d => email.EndsWith("@" + d.Trim().ToLowerInvariant())) == true)
             return Task.FromResult(true);
 
-        if (_options.Contains?.Any(c => email.Contains(c.Trim().ToLowerInvariant())) == true)
+        if (_options.Contains?.Any(c => email.Contains(c.Trim(), StringComparison.InvariantCultureIgnoreCase)) == true)
             return Task.FromResult(true);
 
         return Task.FromResult(false);

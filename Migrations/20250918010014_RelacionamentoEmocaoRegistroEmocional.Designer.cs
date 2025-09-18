@@ -12,8 +12,8 @@ using VibeCheckAPI_Dotnet8.Data.Context;
 namespace VibeCheckAPI_Dotnet8.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250915032626_Initial")]
-    partial class Initial
+    [Migration("20250918010014_RelacionamentoEmocaoRegistroEmocional")]
+    partial class RelacionamentoEmocaoRegistroEmocional
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -80,7 +80,75 @@ namespace VibeCheckAPI_Dotnet8.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("ValorNumerico")
+                        .IsUnique();
+
                     b.ToTable("Emocoes");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Emoji = "😠",
+                            Titulo = "Irritado",
+                            ValorNumerico = 1
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Emoji = "😢",
+                            Titulo = "Triste",
+                            ValorNumerico = 2
+                        },
+                        new
+                        {
+                            Id = 3,
+                            Emoji = "😰",
+                            Titulo = "Ansioso",
+                            ValorNumerico = 3
+                        },
+                        new
+                        {
+                            Id = 4,
+                            Emoji = "😞",
+                            Titulo = "Desmotivado",
+                            ValorNumerico = 4
+                        },
+                        new
+                        {
+                            Id = 5,
+                            Emoji = "😐",
+                            Titulo = "Indiferente",
+                            ValorNumerico = 5
+                        },
+                        new
+                        {
+                            Id = 6,
+                            Emoji = "😮",
+                            Titulo = "Surpreso",
+                            ValorNumerico = 6
+                        },
+                        new
+                        {
+                            Id = 7,
+                            Emoji = "😊",
+                            Titulo = "Feliz",
+                            ValorNumerico = 7
+                        },
+                        new
+                        {
+                            Id = 8,
+                            Emoji = "😄",
+                            Titulo = "Muito Feliz",
+                            ValorNumerico = 8
+                        },
+                        new
+                        {
+                            Id = 9,
+                            Emoji = "😍",
+                            Titulo = "Apaixonado",
+                            ValorNumerico = 9
+                        });
                 });
 
             modelBuilder.Entity("VibeCheckAPI_Dotnet8.Models.RegistroEmocional", b =>
@@ -97,9 +165,6 @@ namespace VibeCheckAPI_Dotnet8.Migrations
                     b.Property<int>("AvaliacaoId")
                         .HasColumnType("integer");
 
-                    b.Property<int?>("AvaliacaoId1")
-                        .HasColumnType("integer");
-
                     b.Property<DateTime>("DataRegistro")
                         .HasColumnType("timestamp with time zone");
 
@@ -111,8 +176,6 @@ namespace VibeCheckAPI_Dotnet8.Migrations
                     b.HasIndex("AlunoId");
 
                     b.HasIndex("AvaliacaoId");
-
-                    b.HasIndex("AvaliacaoId1");
 
                     b.HasIndex("EmocaoId");
 
@@ -126,6 +189,9 @@ namespace VibeCheckAPI_Dotnet8.Migrations
                         .HasColumnType("integer");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("LimiteAlunos")
+                        .HasColumnType("integer");
 
                     b.Property<string>("Nome")
                         .IsRequired()
@@ -218,18 +284,15 @@ namespace VibeCheckAPI_Dotnet8.Migrations
                         .HasForeignKey("AlunoId");
 
                     b.HasOne("VibeCheckAPI_Dotnet8.Models.Avaliacao", "Avaliacao")
-                        .WithMany()
+                        .WithMany("RegistrosEmocionais")
                         .HasForeignKey("AvaliacaoId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("VibeCheckAPI_Dotnet8.Models.Avaliacao", null)
-                        .WithMany("RegistrosEmocionais")
-                        .HasForeignKey("AvaliacaoId1");
-
                     b.HasOne("VibeCheckAPI_Dotnet8.Models.Emocao", "Emocao")
-                        .WithMany()
-                        .HasForeignKey("EmocaoId");
+                        .WithMany("RegistrosEmocionais")
+                        .HasForeignKey("EmocaoId")
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Aluno");
 
@@ -260,6 +323,11 @@ namespace VibeCheckAPI_Dotnet8.Migrations
                 });
 
             modelBuilder.Entity("VibeCheckAPI_Dotnet8.Models.Avaliacao", b =>
+                {
+                    b.Navigation("RegistrosEmocionais");
+                });
+
+            modelBuilder.Entity("VibeCheckAPI_Dotnet8.Models.Emocao", b =>
                 {
                     b.Navigation("RegistrosEmocionais");
                 });

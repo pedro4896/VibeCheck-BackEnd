@@ -54,7 +54,25 @@ public class AvaliacaoService : IAvaliacaoService
 
     public async Task<CodigoAvaliacaoResponseDTO> GerarCodigoCheckinAsync(string googleId, string nomeTurma, int validadeSegundos)
     {
-        var turma = await _uow.TurmaRepository.ObterAsync(t => t.Nome == nomeTurma && t.Professor!.GoogleId == googleId);
+        var professorExistente = await _uow.ProfessorRepository
+            .ObterAsync(u => u.GoogleId == googleId) ?? throw new InvalidOperationException("Professor não encontrado.");
+
+        var turma = await _uow.TurmaRepository
+            .ObterAsync(t => t.Nome == nomeTurma && t.Professor!.GoogleId == googleId);
+
+        if (turma == null)
+        {
+            var novaTurma = new Turma
+            {
+                Nome = nomeTurma,
+                ProfessorId = professorExistente.Id,
+            };
+
+            _uow.TurmaRepository.Criar(novaTurma);
+            await _uow.CommitAsync();
+            turma = novaTurma;
+        }
+
         return await CriarAvaliacaoAsync(TipoAvaliacao.Checkin, turma!, validadeSegundos);
     }
 

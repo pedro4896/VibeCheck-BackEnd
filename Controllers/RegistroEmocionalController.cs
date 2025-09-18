@@ -24,19 +24,19 @@ namespace VibeCheckAPI_Dotnet8.Controllers
 
         [HttpPost("registrar")]
         [Authorize(Policy = "ApenasAluno")]
-        public async Task<ActionResult<RegistroEmocionalDTO>> RegistrarEmocao([FromQuery] string codigo, [FromQuery] int emocaoId)
+        public async Task<ActionResult<RegistroEmocionalDTO>> RegistrarEmocao([FromQuery] string codigo, [FromQuery] int valorEmocao)
         {
             var alunoGoogleId = GetGoogleSub();
             if (alunoGoogleId is null) return Unauthorized();
 
-            var registro = await _registroService.RegistrarEmocaoAsync(alunoGoogleId, codigo, emocaoId);
+            var registro = await _registroService.RegistrarEmocaoAsync(alunoGoogleId, codigo, valorEmocao);
 
             var dto = new RegistroEmocionalDTO
             {
-                Emocao = registro.Emocao!.ValorNumerico,
+                Turma = registro.Avaliacao!.Turma!.Nome,
                 Tipo = registro.Avaliacao!.TipoAvaliacao.ToString(),
-                Data = registro.Avaliacao!.DataCriacao.ToString("O"),
-                Turma = registro.Avaliacao!.Turma!.Nome
+                Emocao = registro.Emocao!.ValorNumerico,
+                Data = registro.Avaliacao!.DataCriacao.ToString("O")
             };
 
             return Ok(dto);

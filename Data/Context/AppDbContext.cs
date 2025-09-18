@@ -46,13 +46,22 @@ namespace VibeCheckAPI_Dotnet8.Data.Context
                 .HasForeignKey(a => a.TurmaId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            modelBuilder.Entity<Emocao>();
+            modelBuilder.Entity<Emocao>()
+                .HasIndex(e => e.ValorNumerico).IsUnique();
+
+            modelBuilder.Entity<RegistroEmocional>()
+                .HasOne(r => r.Emocao)
+                .WithMany(e => e.RegistrosEmocionais!)
+                .HasForeignKey(r => r.EmocaoId)
+                .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<RegistroEmocional>()
                 .HasOne(r => r.Avaliacao)
-                .WithMany()
+                .WithMany(a => a.RegistrosEmocionais!)
                 .HasForeignKey(r => r.AvaliacaoId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.SeedBaseline();
         }
     }
 }

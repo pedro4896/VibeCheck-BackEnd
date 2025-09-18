@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using VibeCheckAPI_Dotnet8.Data.Context;
@@ -11,9 +12,11 @@ using VibeCheckAPI_Dotnet8.Data.Context;
 namespace VibeCheckAPI_Dotnet8.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250917234128_Initial")]
+    partial class Initial
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -76,9 +79,6 @@ namespace VibeCheckAPI_Dotnet8.Migrations
                         .HasColumnType("integer");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("ValorNumerico")
-                        .IsUnique();
 
                     b.ToTable("Emocoes");
 
@@ -287,9 +287,8 @@ namespace VibeCheckAPI_Dotnet8.Migrations
                         .IsRequired();
 
                     b.HasOne("VibeCheckAPI_Dotnet8.Models.Emocao", "Emocao")
-                        .WithMany("RegistrosEmocionais")
-                        .HasForeignKey("EmocaoId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .WithMany()
+                        .HasForeignKey("EmocaoId");
 
                     b.Navigation("Aluno");
 
@@ -320,11 +319,6 @@ namespace VibeCheckAPI_Dotnet8.Migrations
                 });
 
             modelBuilder.Entity("VibeCheckAPI_Dotnet8.Models.Avaliacao", b =>
-                {
-                    b.Navigation("RegistrosEmocionais");
-                });
-
-            modelBuilder.Entity("VibeCheckAPI_Dotnet8.Models.Emocao", b =>
                 {
                     b.Navigation("RegistrosEmocionais");
                 });
