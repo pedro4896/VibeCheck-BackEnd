@@ -81,7 +81,6 @@ namespace VibeCheckAPI_Dotnet8.Migrations
                     Id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     Nome = table.Column<string>(type: "text", nullable: false),
-                    LimiteAlunos = table.Column<int>(type: "integer", nullable: false),
                     ProfessorId = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>

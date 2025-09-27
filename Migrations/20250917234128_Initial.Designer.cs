@@ -165,7 +165,7 @@ namespace VibeCheckAPI_Dotnet8.Migrations
                     b.Property<DateTime>("DataRegistro")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<int?>("EmocaoId")
+                    b.Property<int>("EmocaoId")
                         .HasColumnType("integer");
 
                     b.HasKey("Id");
@@ -186,9 +186,6 @@ namespace VibeCheckAPI_Dotnet8.Migrations
                         .HasColumnType("integer");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("LimiteAlunos")
-                        .HasColumnType("integer");
 
                     b.Property<string>("Nome")
                         .IsRequired()

@@ -12,8 +12,8 @@ using VibeCheckAPI_Dotnet8.Data.Context;
 namespace VibeCheckAPI_Dotnet8.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250918010014_RelacionamentoEmocaoRegistroEmocional")]
-    partial class RelacionamentoEmocaoRegistroEmocional
+    [Migration("20250918142209_NomeDaNovaMigration")]
+    partial class NomeDaNovaMigration
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
